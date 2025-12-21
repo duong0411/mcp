@@ -28,7 +28,6 @@ _browser = None
 def get_browser():
     """Lấy hoặc khởi tạo browser instance"""
     global _browser
-    
     # Kiểm tra xem browser có còn hoạt động không
     if _browser is not None:
         try:
@@ -38,7 +37,6 @@ def get_browser():
             # Browser đã bị đóng hoặc crashed
             logger.warning(f"⚠️ Browser đã bị đóng, khởi tạo lại... ({str(e)[:50]})")
             _browser = None
-    
     # Khởi tạo browser nếu chưa có hoặc đã bị đóng
     if _browser is None:
         logger.info("🚀 Khởi tạo Chrome browser...")
@@ -46,11 +44,9 @@ def get_browser():
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--start-maximized")
-        
         service = Service(ChromeDriverManager().install())
         _browser = webdriver.Chrome(service=service, options=chrome_options)
         logger.info("✅ Browser đã sẵn sàng")
-    
     return _browser
 
 @mcp.tool()
@@ -78,14 +74,12 @@ def search_video(query: str) -> str:
     """
     try:
         browser = get_browser()
-        
         # Đảm bảo đang ở YouTube
         if "youtube.com" not in browser.current_url:
             browser.get("https://www.youtube.com")
             WebDriverWait(browser, 10).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
             )
-        
         # Tìm search box - thử nhiều selector
         search_box = None
         selectors = [
@@ -94,7 +88,6 @@ def search_video(query: str) -> str:
             (By.CSS_SELECTOR, "input[name='search_query']"),
             (By.XPATH, "//input[@id='search']")
         ]
-        
         for by, selector in selectors:
             try:
                 search_box = WebDriverWait(browser, 5).until(
@@ -104,19 +97,15 @@ def search_video(query: str) -> str:
                     break
             except:
                 continue
-        
         if not search_box:
-            return "❌ Không tìm thấy search box"
-        
+            return "❌ Không tìm thấy search box"  
         # Clear và nhập search query
         search_box.clear()
         search_box.send_keys(query)
         search_box.send_keys(Keys.RETURN)
-        
         # Đợi kết quả load - thử nhiều selector
         import time
         time.sleep(2)  # Đợi trang load
-        
         result_selectors = [
             (By.CSS_SELECTOR, "ytd-video-renderer"),
             (By.CSS_SELECTOR, "ytd-grid-video-renderer"),
@@ -124,7 +113,6 @@ def search_video(query: str) -> str:
             (By.CSS_SELECTOR, "a#video-title"),
             (By.XPATH, "//ytd-video-renderer//a[@id='video-title']")
         ]
-        
         for by, selector in result_selectors:
             try:
                 WebDriverWait(browser, 5).until(
@@ -134,7 +122,6 @@ def search_video(query: str) -> str:
                 return f"✅ Đã tìm kiếm '{query}' thành công. Tìm thấy kết quả."
             except:
                 continue
-        
         logger.info(f"✅ Đã tìm kiếm: {query}")
         return f"✅ Đã tìm kiếm '{query}' thành công"
     except Exception as e:
@@ -147,7 +134,6 @@ def play_first_video() -> str:
     """Phát video đầu tiên trong kết quả tìm kiếm"""
     try:
         browser = get_browser()
-        
         # Thử nhiều cách để tìm video đầu tiên
         video_selectors = [
             # Selector cho ytd-video-renderer (search results)
@@ -164,17 +150,14 @@ def play_first_video() -> str:
             (By.XPATH, "//ytd-grid-video-renderer//a[@id='video-title']"),
             (By.XPATH, "//a[@id='video-title' and @href]"),
         ]
-        
         first_video = None
         video_title = "Unknown"
-        
         for by, selector in video_selectors:
             try:
                 # Tìm tất cả videos matching selector
                 videos = WebDriverWait(browser, 5).until(
                     EC.presence_of_all_elements_located((by, selector))
                 )
-                
                 # Lọc ra những video có thể click và có href
                 for video in videos:
                     try:
@@ -191,26 +174,21 @@ def play_first_video() -> str:
             except Exception as e:
                 logger.debug(f"Selector {selector} không hoạt động: {e}")
                 continue
-        
         if not first_video:
             return "❌ Không tìm thấy video nào để phát. Vui lòng tìm kiếm trước."
-        
         # Scroll đến video để đảm bảo nó visible
         browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", first_video)
         import time
         time.sleep(0.5)
-        
         # Click vào video
         try:
             first_video.click()
         except:
             # Nếu click thường không work, dùng JavaScript
             browser.execute_script("arguments[0].click();", first_video)
-        
         # Đợi video player load
         import time
         time.sleep(3)  # Đợi trang video load
-        
         # Chuyển sang full screen
         try:
             # Thử tìm nút fullscreen
@@ -220,7 +198,6 @@ def play_first_video() -> str:
                 (By.XPATH, "//button[@aria-label='Full screen (f)']"),
                 (By.XPATH, "//button[contains(@class, 'ytp-fullscreen-button')]"),
             ]
-            
             fullscreen_btn = None
             for by, selector in fullscreen_selectors:
                 try:
@@ -231,7 +208,6 @@ def play_first_video() -> str:
                         break
                 except:
                     continue
-            
             if fullscreen_btn:
                 fullscreen_btn.click()
                 logger.info(f"✅ Đã chuyển sang chế độ full screen")
@@ -243,7 +219,6 @@ def play_first_video() -> str:
         except Exception as fs_error:
             logger.warning(f"⚠️ Không thể chuyển full screen: {fs_error}")
             # Không return error, video vẫn đang phát
-        
         logger.info(f"✅ Đang phát: {video_title}")
         return f"✅ Đang phát video '{video_title}' ở chế độ full screen"
     except Exception as e:
@@ -265,11 +240,9 @@ def search_and_play(query: str) -> str:
         search_result = search_video(query)
         if "❌" in search_result:
             return search_result
-        
         # Đợi một chút để kết quả load
         import time
         time.sleep(2)
-        
         # Phát video đầu tiên
         return play_first_video()
     except Exception as e:
@@ -311,7 +284,6 @@ def toggle_fullscreen() -> str:
     """Bật/tắt chế độ full screen cho video đang phát"""
     try:
         browser = get_browser()
-        
         # Thử click nút fullscreen
         fullscreen_selectors = [
             (By.CSS_SELECTOR, "button.ytp-fullscreen-button"),
@@ -319,7 +291,6 @@ def toggle_fullscreen() -> str:
             (By.XPATH, "//button[@aria-label='Full screen (f)']"),
             (By.XPATH, "//button[contains(@class, 'ytp-fullscreen-button')]"),
         ]
-        
         fullscreen_btn = None
         for by, selector in fullscreen_selectors:
             try:
@@ -330,7 +301,6 @@ def toggle_fullscreen() -> str:
                     break
             except:
                 continue
-        
         if fullscreen_btn:
             fullscreen_btn.click()
             logger.info("✅ Đã toggle full screen")
@@ -351,7 +321,6 @@ def skip_ad() -> str:
     """Bỏ qua quảng cáo YouTube đang phát (nếu có nút Skip)"""
     try:
         browser = get_browser()
-        
         # Các selector khác nhau cho nút Skip Ad
         skip_button_selectors = [
             # Nút "Skip Ad" chính
@@ -368,7 +337,6 @@ def skip_ad() -> str:
             (By.CSS_SELECTOR, ".ytp-ad-skip-button-modern"),
             (By.CSS_SELECTOR, "button.ytp-ad-skip-button-modern"),
         ]
-        
         skip_button = None
         for by, selector in skip_button_selectors:
             try:
@@ -381,21 +349,18 @@ def skip_ad() -> str:
                     break
             except:
                 continue
-        
         if skip_button:
             # Scroll đến nút để đảm bảo có thể click
             try:
                 browser.execute_script("arguments[0].scrollIntoView({block: 'center'});", skip_button)
             except:
                 pass
-            
             # Click nút skip
             try:
                 skip_button.click()
             except:
                 # Fallback: dùng JavaScript click
                 browser.execute_script("arguments[0].click();", skip_button)
-            
             logger.info("✅ Đã bỏ qua quảng cáo")
             return "✅ Đã bỏ qua quảng cáo thành công"
         else:
@@ -405,7 +370,6 @@ def skip_ad() -> str:
                 (By.CSS_SELECTOR, ".video-ads"),
                 (By.XPATH, "//div[contains(@class, 'ad-showing')]"),
             ]
-            
             has_ad = False
             for by, selector in ad_indicators:
                 try:
@@ -415,7 +379,6 @@ def skip_ad() -> str:
                         break
                 except:
                     continue
-            
             if has_ad:
                 return "⏳ Có quảng cáo nhưng nút Skip chưa xuất hiện. Vui lòng đợi vài giây và thử lại."
             else:
@@ -442,7 +405,6 @@ if __name__ == "__main__":
     # Kiểm tra arguments
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
-        
         if mode == "stdio":
             # Chế độ stdio - chuẩn MCP server
             logger.info("🎬 Starting YouTube Browser Control MCP Server (STDIO mode)...")
@@ -451,12 +413,10 @@ if __name__ == "__main__":
         elif mode == "websocket" or mode == "ws":
             # Chế độ WebSocket - kết nối đến broker
             endpoint = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_ENDPOINT
-            
             logger.info("🎬 Starting YouTube Browser Control (WebSocket mode)...")
             logger.info(f"🔗 Connecting to: {endpoint[:80]}...")
             if debug_mode:
                 logger.info("🐛 Debug mode enabled")
-            
             from websocket_bridge import run_websocket_bridge
             asyncio.run(run_websocket_bridge(endpoint, mcp))
         else:
@@ -472,6 +432,5 @@ if __name__ == "__main__":
         logger.info("💡 Tip: Use 'python client.py --debug' for verbose logging")
         logger.info("💡 Tip: Use 'python client.py stdio' for standard MCP server mode")
         logger.info("")
-        
         from websocket_bridge import run_websocket_bridge
         asyncio.run(run_websocket_bridge(DEFAULT_ENDPOINT, mcp))
