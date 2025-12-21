@@ -53,7 +53,6 @@ def get_browser():
     
     return _browser
 
-
 @mcp.tool()
 def open_youtube() -> str:
     """Mở trình duyệt Chrome và điều hướng đến trang YouTube"""
@@ -70,12 +69,10 @@ def open_youtube() -> str:
         logger.error(error_msg)
         return error_msg
 
-
 @mcp.tool()
 def search_video(query: str) -> str:
     """
     Tìm kiếm video trên YouTube theo từ khóa
-    
     Args:
         query: Từ khóa tìm kiếm video
     """
@@ -144,7 +141,6 @@ def search_video(query: str) -> str:
         error_msg = f"❌ Lỗi khi tìm kiếm: {str(e)}"
         logger.error(error_msg)
         return error_msg
-
 
 @mcp.tool()
 def play_first_video() -> str:
@@ -257,12 +253,10 @@ def play_first_video() -> str:
         traceback.print_exc()
         return error_msg
 
-
 @mcp.tool()
 def search_and_play(query: str) -> str:
     """
     Tìm kiếm và tự động phát video đầu tiên
-    
     Args:
         query: Từ khóa tìm kiếm video để phát
     """
@@ -283,7 +277,6 @@ def search_and_play(query: str) -> str:
         logger.error(error_msg)
         return error_msg
 
-
 @mcp.tool()
 def get_current_url() -> str:
     """Lấy URL hiện tại của trình duyệt"""
@@ -296,7 +289,6 @@ def get_current_url() -> str:
         error_msg = f"❌ Lỗi: {str(e)}"
         logger.error(error_msg)
         return error_msg
-
 
 @mcp.tool()
 def close_browser() -> str:
@@ -313,7 +305,6 @@ def close_browser() -> str:
         error_msg = f"❌ Lỗi: {str(e)}"
         logger.error(error_msg)
         return error_msg
-
 
 @mcp.tool()
 def toggle_fullscreen() -> str:
@@ -354,7 +345,6 @@ def toggle_fullscreen() -> str:
         error_msg = f"❌ Lỗi: {str(e)}"
         logger.error(error_msg)
         return error_msg
-
 
 @mcp.tool()
 def skip_ad() -> str:
@@ -434,7 +424,6 @@ def skip_ad() -> str:
         error_msg = f"❌ Lỗi khi bỏ qua quảng cáo: {str(e)}"
         logger.error(error_msg)
         return error_msg
-
 
 if __name__ == "__main__":
     import sys
