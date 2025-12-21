@@ -15,7 +15,7 @@ pip install -r requirements.txt
 
 ### 3. Cấu hình Endpoint
 - Truy cập https://xiaozhi.me để lấy WebSocket token
-- Mở file `client.py`, tìm dòng `DEFAULT_ENDPOINT` (dòng 444)
+- Mở file `client.py`, tìm dòng `DEFAULT_ENDPOINT` (dòng 433)
 - Thay thế URL bằng endpoint của bạn:
 ```python
 DEFAULT_ENDPOINT = "wss://api.xiaozhi.me/mcp/?token=YOUR_TOKEN_HERE"
